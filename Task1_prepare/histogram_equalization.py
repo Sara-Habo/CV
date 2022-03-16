@@ -55,8 +55,8 @@ def Histogram_equalize(path,flag): #flag=0 for a grayscale and 1 for rgb
         im_gray=rgb2gray(cv2.cvtColor(image,cv2.COLOR_BGR2GRAY))
         im=cv2.convertScaleAbs(im_gray)
     
-    original_level=Hist(im)
-    new_level=Equalize(original_level,np.max(im),im.shape[0]*im.shape[1])
+    frequency=Hist(im)
+    new_level=Equalize(frequency,np.max(im),im.shape[0]*im.shape[1])
     new_image=mapping(im,new_level,[im.shape[0],im.shape[1]])
     return new_image
    
@@ -75,4 +75,3 @@ new_grey=Histogram_equalize("D:\SBME 3rd year\secomd term\CV\lena_opencv_gray.jp
 image_grey=cv2.imread("D:\SBME 3rd year\secomd term\CV\lena_opencv_gray.jpg",0)
 res_grey=np.hstack((new_grey,image_grey))
 cv2.imshow("grey",res_grey)
-        
