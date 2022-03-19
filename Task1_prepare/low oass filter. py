@@ -1,0 +1,54 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+# from PIL import Image, ImageFilter
+#  Read images
+image = cv2.imread('laplacian_image_test.jpg', 0)
+# image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+# image2 = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
+# image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+figure_size = 9
+#  Fourier transform
+ff = np.fft.fft2(image)
+# fimg = np.fft.fft2(image)
+fimg = cv2.dft(np.float32(image), flags=cv2.DFT_COMPLEX_OUTPUT)
+fshift = np.fft.fftshift(fimg)
+f_shift = np.fft.fftshift(ff)
+
+fg = np.log(np.abs(f_shift))
+
+#  Set the low pass filter
+rows, cols = image.shape
+#  Center position
+crow, ccol = int(rows / 2), int(cols / 2)
+mask = np.zeros((rows, cols, 2), np.uint8)
+mask[crow - 30:crow + 30, ccol - 30:ccol + 30] = 1
+
+#  The product of mask image and spectrum image
+f = fshift * mask
+# print(f.shape, fshift.shape, mask.shape)
+# (199, 198, 2) (199, 198, 2) (199, 198, 2)
+
+
+#  Inverse Fourier transform
+ishift = np.fft.ifftshift(f)
+iimg = cv2.idft(ishift)
+iimg = cv2.magnitude(iimg[:, :, 0], iimg[:, :, 1])
+
+#  Fast Fourier transform algorithm to get the frequency distribution
+f = np.fft.fft2(iimg)
+fshift = np.fft.fftshift(f)
+fimg = np.log(np.abs(fshift))
+
+#  Display original image and high pass filter processing image
+plt.figure(figsize=(11, 6))
+plt.subplot(221), plt.imshow(image, 'gray'), plt.title('original Image')
+plt.axis('off')
+plt.subplot(222), plt.imshow(fg, 'gray'), plt.title('frequency domain of original Image')
+plt.axis('off')
+plt.subplot(223), plt.imshow(iimg, 'gray'), plt.title('low pass filter')
+plt.axis('off')
+plt.subplot(224), plt.imshow(fimg, 'gray'), plt.title('frequency domain of filtered image')
+plt.axis('off')
+plt.show()
+ 
