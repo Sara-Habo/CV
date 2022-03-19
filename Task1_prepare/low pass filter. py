@@ -18,7 +18,7 @@ f_shift = np.fft.fftshift(ff)
 fg = np.log(np.abs(f_shift))
 
 #  Set the low pass filter
-rows, cols = image.shape
+rows, cols = fg.shape
 #  Center position
 crow, ccol = int(rows / 2), int(cols / 2)
 mask = np.zeros((rows, cols, 2), np.uint8)
