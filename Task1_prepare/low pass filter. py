@@ -52,3 +52,6 @@ plt.subplot(224), plt.imshow(fimg, 'gray'), plt.title('frequency domain of filte
 plt.axis('off')
 plt.show()
  
+# reference
+# https://towardsdatascience.com/image-filters-in-python-26ee938e57d2
+# https://chowdera.com/2020/11/202011071652506076.html
