@@ -31,12 +31,23 @@ def LOF(path):
     #   1   1  1     -1  -1  -1
 
     #Note number (4) is increase will make more sharpness
-    np.set_printoptions(threshold=100)
+
     print("N_laplacian ={}".format(N_laplacian))
     print("abs_laplacian ={}".format(np.absolute(N_laplacian)))
     print("P_laplacian ={}".format(P_laplacian))
 
     return img_gray,N_laplacian,P_laplacian
+
+def LOF_RGB(path):
+    img_BGR = cv2.imread(path)
+    img_HSV = cv2.cvtColor(img_BGR, cv2.COLOR_BGR2HSV)
+    img_HSV_G = cv2.GaussianBlur(img_HSV[:,:,2], (3, 3), cv2.BORDER_CONSTANT)
+    print(img_HSV_G.shape)
+    img_HSV_Lap = cv2.Laplacian(img_HSV_G, cv2.CV_64F)
+    img_HSV[:, :, 2]=img_HSV_Lap
+    img_RGB_Lap = cv2.cvtColor(img_HSV,cv2.COLOR_HSV2RGB)
+    return img_RGB_Lap
+
 
 def FT_another_function(image):
     frequency = np.fft.fft2(image)
@@ -49,33 +60,37 @@ def FFT(image):
 
 
 
-img_gray,N_laplacian,P_laplacian=LOF("E:/temp third year second term/computer vision CV/Tasks/lena_opencv_gray.jpg")
+#img_gray,N_laplacian,P_laplacian=LOF("E:/temp third year second term/computer vision CV/Tasks/lena_opencv_gray.jpg")
 
-plt.subplot(231)
-plt.title("gray spacial")
-plt.imshow(img_gray,cmap = 'gray')
-plt.xticks([]), plt.yticks ([])
-plt.subplot(234)
-plt.title("gray frequency")
-plt.imshow(FFT(img_gray),cmap = 'gray')
-plt.xticks([]), plt.yticks ([])
-plt.subplot(232)
-plt.title("negative_lap special")
-plt.imshow(N_laplacian,cmap = 'gray')
-plt.xticks([]), plt.yticks ([])
-plt.subplot(235)
-plt.title("negative_lap frequency")
-plt.imshow(FFT(N_laplacian),cmap = 'gray')
-plt.xticks([]), plt.yticks ([])
-plt.subplot(233)
-plt.title("positive_lap special")
-plt.imshow(P_laplacian,cmap = 'gray')
-plt.xticks([]), plt.yticks ([])
-plt.subplot(236)
-plt.title("positive_lap frequency")
-plt.imshow(FFT(P_laplacian),cmap = 'gray')
-plt.xticks([]), plt.yticks ([])
+img_filtered = LOF_RGB("E:/temp third year second term/computer vision CV/Tasks/laplacian_image_test.jpg")
+plt.imshow(img_filtered)
 plt.show()
+
+# plt.subplot(231)
+# plt.title("gray spacial")
+# plt.imshow(img_gray,cmap = 'gray')
+# plt.xticks([]), plt.yticks ([])
+# plt.subplot(234)
+# plt.title("gray frequency")
+# plt.imshow(FFT(img_gray),cmap = 'gray')
+# plt.xticks([]), plt.yticks ([])
+# plt.subplot(232)
+# plt.title("negative_lap special")
+# plt.imshow(N_laplacian,cmap = 'gray')
+# plt.xticks([]), plt.yticks ([])
+# plt.subplot(235)
+# plt.title("negative_lap frequency")
+# plt.imshow(FFT(N_laplacian),cmap = 'gray')
+# plt.xticks([]), plt.yticks ([])
+# plt.subplot(233)
+# plt.title("positive_lap special")
+# plt.imshow(P_laplacian,cmap = 'gray')
+# plt.xticks([]), plt.yticks ([])
+# plt.subplot(236)
+# plt.title("positive_lap frequency")
+# plt.imshow(FFT(P_laplacian),cmap = 'gray')
+# plt.xticks([]), plt.yticks ([])
+# plt.show()
 
 ####refrence in order to benifit
 #https://www.youtube.com/watch?v=t1xN7AFjp4o explain every thing
