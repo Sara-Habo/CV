@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skimage.color import rgb2gray
 import cv2
+
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -236,7 +238,6 @@ class Ui_MainWindow(object):
         self.original_label_freq.hide()
         self.filtered_label_freq.hide()
         self.warning.hide()
-
         # ---------------------------------functions----------------------------------------
         self.open_image.clicked.connect(lambda: self.OpenImage())
         self.choosefilter.currentIndexChanged.connect(lambda: self.CheckComboBox())
@@ -343,18 +344,18 @@ class Ui_MainWindow(object):
                     self.median_filteredimage = self.median_filter(self.imagePath, 1)
                 self.ShowFilteredImage(self.median_filteredimage)
                 self.ShowFilteredInFrequency(self.median_filteredimage, 1)
-            
+
             elif self.choosefilter.currentText() == "Low pass filter in spatial":
                 self.lowfilter_spatial = self.low_filter_spatial(self.imagePath)
                 self.ShowFilteredImage(self.lowfilter_spatial)
                 self.ShowFilteredInFrequency(self.lowfilter_spatial, 1)
-                
+
             elif self.choosefilter.currentText() == "Low pass filter in frequancy":
-                self.smooth_image = self.frq_filter(self.imagePath,flag)
+                self.smooth_image = self.frq_filter(self.imagePath, flag)
                 print("filter done")
                 self.ShowFilteredImage(self.smooth_image)
                 self.ShowFilteredInFrequency(self.smooth_image, flag)
-                
+
             elif self.choosefilter.currentText() == "High pass filter in spatial":
                 self.sharp_images = self.High_filter_spatial(self.imagePath, flag)
                 self.ShowFilteredImage(self.sharp_images)
@@ -365,6 +366,7 @@ class Ui_MainWindow(object):
                 self.ShowFilteredImage(self.sharp_images)
                 self.ShowFilteredInFrequency(self.sharp_images, flag)
 
+#-------------------------------------highpass filter----------------------------------------
     def High_filter_frequency(self, imagePath, flag):
 
         self.image = plt.imread(imagePath)
@@ -411,6 +413,7 @@ class Ui_MainWindow(object):
 
         return self.image_sharp
 
+#------------------------------------------------lowpass filter---------------------------------------
     def low_filter_spatial(self, image_path):
         self.image = cv2.imread(image_path)
         self.blurimage = cv2.blur(self.image, (5, 5))
@@ -418,27 +421,7 @@ class Ui_MainWindow(object):
 
         return self.blurimage
 
-   
-    def low_filter_for_component(self,img):
 
-        # Fourier transform
-        img_dft = np.fft.fft2(img)
-        dft_shift = np.fft.fftshift(img_dft)  # Move frequency domain from upper left to middle
-
-        # Low-pass filter
-        h = dft_shift.shape[0]
-        w = dft_shift.shape[1]
-        h_center, w_center = int(h / 2), int(w / 2)
-        img2 = np.zeros((h, w),np.uint8)
-        img2[h_center - 50 : h_center + 50, w_center - 50: w_center + 50] = 1
-        dft_shift = img2 * dft_shift
-
-        # Inverse Fourier Transform
-        inverse_dft_shift = np.fft.ifftshift(dft_shift)  # Move the frequency domain from the middle to the upper left corner
-        inverse_fimg = np.fft.ifft2(inverse_dft_shift)  # Fourier library function call
-        inverse_fimg = np.abs(inverse_fimg)
-
-        return inverse_fimg
 
     def frq_filter(self, file_path, flag):
 
@@ -453,42 +436,42 @@ class Ui_MainWindow(object):
                 self.image[:, :, i] = self.low_filter_for_component(component)
         return self.image
 
+    def low_filter_for_component(self, img):
 
+        # Fourier transform
+        img_dft = np.fft.fft2(img)
+        dft_shift = np.fft.fftshift(img_dft)  # Move frequency domain from upper left to middle
+
+        # Low-pass filter
+        h = dft_shift.shape[0]
+        w = dft_shift.shape[1]
+        h_center, w_center = int(h / 2), int(w / 2)
+        img2 = np.zeros((h, w), np.uint8)
+        img2[h_center - 50: h_center + 50, w_center - 50: w_center + 50] = 1
+        dft_shift = img2 * dft_shift
+
+        # Inverse Fourier Transform
+        inverse_dft_shift = np.fft.ifftshift(
+            dft_shift)  # Move the frequency domain from the middle to the upper left corner
+        inverse_fimg = np.fft.ifft2(inverse_dft_shift)  # Fourier library function call
+        inverse_fimg = np.abs(inverse_fimg)
+
+        return inverse_fimg
+
+#---------------------------------------median filter--------------------------------------------
     def median_filter(self, image, color_flag):
         self.im_arr = cv2.imread(image)
         if color_flag == 0:
-            self.median = cv2.medianBlur(self.im_arr, 3)
+            self.median = cv2.medianBlur(self.im_arr,5)
         else:
-            self.median = self.im_arr
-            self.median[:, :, 0] = cv2.medianBlur(self.im_arr[:, :, 0], 5)
-            self.median[:, :, 1] = cv2.medianBlur(self.im_arr[:, :, 1], 5)
-            self.median[:, :, 2] = cv2.medianBlur(self.im_arr[:, :, 2], 5)
-            self.median = cv2.cvtColor(self.median, cv2.COLOR_BGR2RGB)
+            self.im_arr[:, :, 0] = cv2.medianBlur(self.im_arr[:, :, 0], 5)
+            self.im_arr[:, :, 1] = cv2.medianBlur(self.im_arr[:, :, 1], 5)
+            self.im_arr[:, :, 2] = cv2.medianBlur(self.im_arr[:, :, 2], 5)
+            self.median = cv2.cvtColor(self.im_arr, cv2.COLOR_BGR2RGB)
 
         return self.median
 
-    def ShowFilteredImage(self, image):
-
-        plt.imsave("filtered image.png", image, cmap="gray")
-        self.filtered_img = QPixmap("filtered image.png")
-
-        self.filtered_image.setPixmap(self.filtered_img)
-        self.filtered_image.setScaledContents(True)
-        self.filtered_image.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-
-    def ShowFilteredInFrequency(self, image, gray_RGB_flag):
-        self.filtered_freq.clear()
-        if gray_RGB_flag == 1:  ##that mean if flag ==1  image is rgb and need to convert to gary to get frequency domain
-            image = (cv2.cvtColor(image, cv2.COLOR_RGB2GRAY))
-        self.filtered_frequency = self.FFT(image)
-        plt.imsave("filtered in Freq.png", self.filtered_frequency, cmap="gray")
-
-        self.filtered_frequency = QPixmap("filtered in Freq.png")
-        self.filtered_freq.setPixmap(self.filtered_frequency)
-
-        self.filtered_freq.setScaledContents(True)
-        self.filtered_freq.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-
+#--------------------------------------lablacian filter---------------------------------------------
     def LOF_gray(self, path, N_P_flag):
         self.img_BGR = cv2.imread(path)
         self.img_gray = cv2.cvtColor(self.img_BGR, cv2.COLOR_BGR2GRAY)
@@ -508,12 +491,19 @@ class Ui_MainWindow(object):
         self.img_HSV_RGB = cv2.cvtColor(self.img_HSV, cv2.COLOR_HSV2RGB)
         return self.img_HSV_RGB
 
-    def FFT(self, image):
-        self.f = np.fft.fft2(image)
-        self.fshift = np.fft.fftshift(self.f)
-        self.magnitude_spectrum = np.abs(self.fshift)  # abs is equivalent to Norm-2 L2
-        self.magnitude_spectrum_log_clear = np.log(self.magnitude_spectrum + 1)
-        return self.magnitude_spectrum_log_clear
+#--------------------------------------Histogram----------------------------------------------
+    def Histogram_equalize(self, path, flag):  # flag=0 for a grayscale and 1 for rgb
+
+        if flag == 0:  # greyscale
+            self.im = self.imagee
+
+        elif flag == 1:
+            self.im = self.im_gray
+
+        self.frequency = self.Hist(self.im)
+        self.new_level = self.Equalize(self.frequency, np.max(self.im), self.im.shape[0] * self.im.shape[1])
+        self.equalized_image = self.mapping(self.im, self.new_level, [self.im.shape[0], self.im.shape[1]])
+        return self.equalized_image
 
     def Hist(self, image):  # return the image histogram
         self.h = np.zeros(shape=(1, 256), dtype=int)
@@ -542,18 +532,35 @@ class Ui_MainWindow(object):
                 self.new_image[i, j] = self.new_level[k]
         return self.new_image
 
-    def Histogram_equalize(self, path, flag):  # flag=0 for a grayscale and 1 for rgb
+#-----------------------------------------general function for display------------------------------------------
+    def ShowFilteredImage(self, image):
 
-        if flag == 0:  # greyscale
-            self.im = self.imagee
+        plt.imsave("filtered image.png", image, cmap="gray")
+        self.filtered_img = QPixmap("filtered image.png")
 
-        elif flag == 1:
-            self.im = self.im_gray
+        self.filtered_image.setPixmap(self.filtered_img)
+        self.filtered_image.setScaledContents(True)
+        self.filtered_image.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
 
-        self.frequency = self.Hist(self.im)
-        self.new_level = self.Equalize(self.frequency, np.max(self.im), self.im.shape[0] * self.im.shape[1])
-        self.equalized_image = self.mapping(self.im, self.new_level, [self.im.shape[0], self.im.shape[1]])
-        return self.equalized_image
+    def ShowFilteredInFrequency(self, image, gray_RGB_flag):
+        self.filtered_freq.clear()
+        if gray_RGB_flag == 1:  ##that mean if flag ==1  image is rgb and need to convert to gary to get frequency domain
+            image = (cv2.cvtColor(image, cv2.COLOR_RGB2GRAY))
+        self.filtered_frequency = self.FFT(image)
+        plt.imsave("filtered in Freq.png", self.filtered_frequency, cmap="gray")
+
+        self.filtered_frequency = QPixmap("filtered in Freq.png")
+        self.filtered_freq.setPixmap(self.filtered_frequency)
+
+        self.filtered_freq.setScaledContents(True)
+        self.filtered_freq.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+
+    def FFT(self, image):
+        self.f = np.fft.fft2(image)
+        self.fshift = np.fft.fftshift(self.f)
+        self.magnitude_spectrum = np.abs(self.fshift)  # abs is equivalent to Norm-2 L2
+        self.magnitude_spectrum_log_clear = np.log(self.magnitude_spectrum + 1)
+        return self.magnitude_spectrum_log_clear
 
 
 if __name__ == "__main__":
