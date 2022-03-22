@@ -343,12 +343,18 @@ class Ui_MainWindow(object):
                     self.median_filteredimage = self.median_filter(self.imagePath, 1)
                 self.ShowFilteredImage(self.median_filteredimage)
                 self.ShowFilteredInFrequency(self.median_filteredimage, 1)
+            
             elif self.choosefilter.currentText() == "Low pass filter in spatial":
                 self.lowfilter_spatial = self.low_filter_spatial(self.imagePath)
                 self.ShowFilteredImage(self.lowfilter_spatial)
                 self.ShowFilteredInFrequency(self.lowfilter_spatial, 1)
+                
             elif self.choosefilter.currentText() == "Low pass filter in frequancy":
-                self.frq_filter(self.imagePath)
+                self.smooth_image = self.frq_filter(self.imagePath,flag)
+                print("filter done")
+                self.ShowFilteredImage(self.smooth_image)
+                self.ShowFilteredInFrequency(self.smooth_image, flag)
+                
             elif self.choosefilter.currentText() == "High pass filter in spatial":
                 self.sharp_images = self.High_filter_spatial(self.imagePath, flag)
                 self.ShowFilteredImage(self.sharp_images)
@@ -412,45 +418,41 @@ class Ui_MainWindow(object):
 
         return self.blurimage
 
-    def lowPassFiltering(self, img, size):
-        h, w = img.shape[0:2]
-        h1, w1 = int(h / 2), int(w / 2)
-        img2 = np.zeros((h, w),
-                        np.uint8)
-        img2[h1 - int(size / 2):h1 + int(size / 2), w1 - int(size / 2):w1 + int(
-            size / 2)] = 1
-        img3 = img2 * img
-        return img3
-
-    def frq_filter(self, file_path, flag=1):
-
-        # read pic
-        gray = cv2.imread(file_path)
-        gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
-        h, w = gray.shape
+   
+    def low_filter_for_component(self,img):
 
         # Fourier transform
-        img_dft = np.fft.fft2(gray)
+        img_dft = np.fft.fft2(img)
         dft_shift = np.fft.fftshift(img_dft)  # Move frequency domain from upper left to middle
 
         # Low-pass filter
-        dft_shift = self.lowPassFiltering(dft_shift, 100)
+        h = dft_shift.shape[0]
+        w = dft_shift.shape[1]
+        h_center, w_center = int(h / 2), int(w / 2)
+        img2 = np.zeros((h, w),np.uint8)
+        img2[h_center - 50 : h_center + 50, w_center - 50: w_center + 50] = 1
+        dft_shift = img2 * dft_shift
 
         # Inverse Fourier Transform
-        idft_shift = np.fft.ifftshift(dft_shift)  # Move the frequency domain from the middle to the upper left corner
-        ifimg = np.fft.ifft2(idft_shift)  # Fourier library function call
-        ifimg = np.abs(ifimg)
-        # cv2.imshow("ifimg", np.int8(ifimg))
-        # cv2.imshow("gray", gray)
-        plt.imsave("filtered image.png", ifimg, cmap="gray")
-        self.filtered_img = QPixmap("filtered image.png")
-        self.filtered_image.setPixmap(self.filtered_img)
-        img_dft = np.fft.fft2(ifimg)
-        dft_shift = np.fft.fftshift(img_dft)
-        res = np.log(np.abs(dft_shift))
-        plt.imsave("filtered in Freq.png", res, cmap="gray")
-        self.filtered_frequency = QPixmap("filtered in Freq.png")
-        self.filtered_freq.setPixmap(self.filtered_frequency)
+        inverse_dft_shift = np.fft.ifftshift(dft_shift)  # Move the frequency domain from the middle to the upper left corner
+        inverse_fimg = np.fft.ifft2(inverse_dft_shift)  # Fourier library function call
+        inverse_fimg = np.abs(inverse_fimg)
+
+        return inverse_fimg
+
+    def frq_filter(self, file_path, flag):
+
+        # read pic
+        self.image = plt.imread(file_path)
+
+        if flag == 0:
+            self.image = self.low_filter_for_component(self.image)
+        else:
+            for i in range(3):
+                component = self.image[:, :, i]
+                self.image[:, :, i] = self.low_filter_for_component(component)
+        return self.image
+
 
     def median_filter(self, image, color_flag):
         self.im_arr = cv2.imread(image)
