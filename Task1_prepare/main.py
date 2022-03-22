@@ -269,7 +269,8 @@ class Ui_MainWindow(object):
             self.lowfilter_spatial = self.low_filter_spatial(self.imagePath)
             self.ShowFilteredImage(self.lowfilter_spatial)
             self.ShowFilteredInFrequency(self.lowfilter_spatial, 1)
-
+        elif self.choosefilter.currentText() == "Low pass filter in frequancy":
+            self.frq_filter(self.imagePath)
         elif self.choosefilter.currentText() == "High pass filter in spatial":
             self.sharp_images = self.High_filter_spatial(self.imagePath,flag)
             self.ShowFilteredImage(self.sharp_images)
