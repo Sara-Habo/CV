@@ -15,8 +15,8 @@ cv2.line(blue_background, p1, p2, (255, 255, 255), 100)
 cv2.line(blue_background, p2, p3, (255, 255, 255), 100)
 cv2.line(blue_background, p1, p3, (255, 255, 255), 100)
 
-cv2.rectangle(blue_background, (450, 50), (550, 500),(0,150, 150), -1) #blue
-cv2.rectangle(blue_background, (150, 50), (420, 150),(255,150, 255), -1) #red
+cv2.rectangle(blue_background, (450, 50), (550, 500),(0,150, 150), -1) 
+cv2.rectangle(blue_background, (150, 50), (420, 150),(255,150, 255), -1)
 
 cv2.imwrite('trace_4.png', blue_background)
 
@@ -37,7 +37,7 @@ def boundary_tracing(image,R_COMPONENT,G_COMPONENT,B_COMPONENT,edge_color):
     #function to change color
     def change_color(row ,col):
         if(edge_color == "RED"):
-            image_detected[row][col][0] = 0
+            image_detected[row][col][0] = 255
             image_detected[row][col][1] = 0
             image_detected[row][col][2] = 0
         elif(edge_color == "YELLOW"):
@@ -121,7 +121,7 @@ boundary_tracing(image ,0,150,150 ,"YELLOW") #for green region
 boundary_tracing(image ,255,150, 255, "BLUE")
 fig, axs = plt.subplots(1,2)
 axs[0].imshow(image)#axs[0,0] yields an error
-axs[0].set_title("original image")
+axs[0].set_title("Original image")
 axs[1].imshow(image_detected)
-axs[1].set_title("detected regions")
+axs[1].set_title("Detected regions")
 plt.show()
